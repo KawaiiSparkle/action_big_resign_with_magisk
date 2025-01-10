@@ -27,7 +27,7 @@ jobs:
         pip2 install pycryptodome
         curl -o original.zip -L "${{ github.event.inputs.ZIP_URL }}"
         curl -o avbtool.tgz -L "https://android.googlesource.com/platform/external/avb/+archive/refs/heads/pie-release.tar.gz"
-        curl -o magisk.apk -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases/latest | grep -Po '(?<=download_url\"\: \").*Magisk.*apk')
+        curl -o magisk.apk -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases/tags/canary-27008 | grep -Po '(?<=download_url\"\: \").*Magisk.*apk')
         wget https://raw.githubusercontent.com/magojohnji/magiskboot-linux/main/x86_64/magiskboot
         chmod +x magiskboot
         chmod +x main/*.sh
