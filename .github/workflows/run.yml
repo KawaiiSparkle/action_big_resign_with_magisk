@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       ZIP_URL:    
-        description: 'URL of (splloader)+uboot+sml+trustos+(teecfg)+vbmeta+boot+recovery (all end with .bin)'
+        description: 'URL of (splloader)+uboot+sml+trustos+(teecfg)+vbmeta+boot+(recovery) (all end with .bin)'
         required: true
         default: ''
 
@@ -31,57 +31,8 @@ jobs:
         wget https://raw.githubusercontent.com/magojohnji/magiskboot-linux/main/x86_64/magiskboot
         chmod +x magiskboot
         chmod +x main/*.sh
-        mkdir work
-        busybox unzip -oq original.zip -d work
-        mkdir boot
-        mkdir recovery
-        mkdir -p vbmeta/keys
-        tar xzvf avbtool.tgz -C vbmeta/
-        mv work/boot* boot/boot.img
-        mv work/recovery* recovery/recovery.img
-        mv work/vbmeta* vbmeta/keys/vbmeta.img
-        mkdir boot/zzz
-        busybox unzip -oq magisk.apk -d boot/zzz
-        mv main/boot_patch_9.sh boot/
-        mv main/boot_patch_10.sh boot/
         mv main/sign.sh ./
-        git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
-        cp -a vendor_sprd_proprietories-source_packimage/sign_image/v2/prebuilt/* work/
-        cp -a vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc work/
-        cp vendor_sprd_proprietories-source_packimage/sign_image/v2/sign_image_v2.sh work/
-        gcc -o work/get-raw-image vendor_sprd_proprietories-source_packimage/sign_image/get-raw-image.c
-        chmod +x work/*
-        cd vendor_sprd_proprietories-source_packimage/sign_vbmeta
-        make
-        chmod +x generate_sign_script_for_vbmeta
-        cp generate_sign_script_for_vbmeta ../../vbmeta/keys/
-        cd ../../vbmeta/keys/
-        ./generate_sign_script_for_vbmeta vbmeta.img
-        mv sign_vbmeta.sh ../
-        mv padding.py ../
-        cd ../..
-        cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/rsa4096_boot.pem vbmeta/
-        cp -f vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/
-        cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/rsa4096_recovery.pem vbmeta/
-        cp -f vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/rsa4096_recovery_pub.bin vbmeta/keys/
-        cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/rsa4096_vbmeta.pem vbmeta/
-        chmod +x vbmeta/*
-        sudo rm -rf /usr/bin/python
-        sudo ln -s /usr/bin/python2 /usr/bin/python
-        cd vbmeta
-        ./sign_vbmeta.sh
-        python padding.py
-        cd ..
         ./sign.sh
-        cd work
-        ./sign_image_v2.sh
-        cd ..
-        mkdir output
-        cp work/*-sign.bin output/
-        cp boot/patched.img output/boot.img
-        cp recovery/recovery.img output/recovery.img
-        cp vbmeta/vbmeta-sign-custom.img output/vbmeta.img
-        zip -r -v resigned.zip output
 
     - name: Upload to Release
       uses: softprops/action-gh-release@v1

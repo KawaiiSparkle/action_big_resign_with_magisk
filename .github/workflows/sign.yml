@@ -1,0 +1,56 @@
+name: sign-one-partition-only
+
+on:
+  workflow_dispatch:
+    inputs:
+      IMG_URL:    
+        description: 'URL of image'
+        required: true
+        default: ''
+      PART_NAME:    
+        description: 'partition name of your image (eg. boot/recovery)'
+        required: true
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        path: main
+
+    - name: patch
+      run: |
+        sudo apt update
+        sudo apt -y install build-essential python openssl curl wget
+        wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && sudo python2.7 get-pip.py
+        pip2 install pycryptodome
+        curl -o image.img -L "${{ github.event.inputs.IMG_URL }}"
+        curl -o avbtool.tgz -L "https://android.googlesource.com/platform/external/avb/+archive/refs/heads/pie-release.tar.gz"
+        mkdir work
+        tar xzvf avbtool.tgz -C work/
+        mv main/sign_avb.sh work/
+        chmod +x work/*
+        git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
+        cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/*.pem work/
+        sudo rm -rf /usr/bin/python
+        sudo ln -s /usr/bin/python2 /usr/bin/python
+        cd work
+        ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../image.img ../image.img
+
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: | 
+          image.img
+        name: ${{ github.run_id }}
+        tag_name: ${{ github.run_id }}
+        body: |
+          URL: ${{ github.event.inputs.IMG_URL }}
+          PART_NAME: ${{ github.event.inputs.PART_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
