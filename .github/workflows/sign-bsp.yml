@@ -1,0 +1,50 @@
+name: sign-boot-modem-bsp
+
+on:
+  workflow_dispatch:
+    inputs:
+      IMG_URL:    
+        description: 'URL of image'
+        required: true
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: patch
+      run: |
+        sudo apt update
+        sudo apt -y install build-essential openssl curl wget
+        mkdir work
+        git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
+        cp -a vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc work/
+        cp vendor_sprd_proprietories-source_packimage/sign_image/v2/sign_image_v1.sh work/
+        gcc -o work/get-raw-image vendor_sprd_proprietories-source_packimage/sign_image/get-raw-image.c
+        cd vendor_sprd_proprietories-source_packimage/sign_image/v2/insertheader
+        make
+        cd ../sprd_sign
+        make
+        cd ../../../../
+        cp vendor_sprd_proprietories-source_packimage/sign_image/v2/insertheader/imgheaderinsert work/
+        cp vendor_sprd_proprietories-source_packimage/sign_image/v2/sprd_sign/sprd_sign work/
+        chmod +x work/*
+        cd work
+        curl -o boot.bin -L "${{ github.event.inputs.IMG_URL }}"
+        ./get-raw-image "boot.bin"
+        ./sign_image_v1.sh
+        cp boot-sign.bin ../boot-sign.img
+      continue-on-error: true
+
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: | 
+          boot-sign.img
+        name: ${{ github.run_id }}
+        tag_name: ${{ github.run_id }}
+        body: |
+          URL: ${{ github.event.inputs.IMG_URL }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

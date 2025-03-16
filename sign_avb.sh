@@ -8,7 +8,7 @@ CMD="python avbtool add_hash_footer --image $3 --partition_name $1 --partition_s
 while IFS= read -r line; do
     PROP_KEY=$(echo "$line" | sed -E "s/^\s*Prop:\s*([^ ]+).*$/\1/")
     PROP_VALUE=$(echo "$line" | sed -E "s/^\s*Prop:.*->\s*'([^ ]+)'.*$/\1/")
-    CMD+=" --prop $PROP_KEY:$PROP_VALUE"
+    CMD="$CMD --prop $PROP_KEY:$PROP_VALUE"
 done < "$PROP_FILE"
 rm "$PROP_FILE"
 $CMD

@@ -14,7 +14,9 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/catthehacker/ubuntu:runner-20.04
     steps:
     
     - name: Checkout
@@ -37,8 +39,8 @@ jobs:
         chmod +x work/*
         git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
         cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/*.pem work/
-        sudo rm -rf /usr/bin/python
-        sudo ln -s /usr/bin/python2 /usr/bin/python
+        sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
+        sudo ln -sf /usr/bin/python2.7 /usr/bin/python
         cd work
         ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../image.img ../image.img
 

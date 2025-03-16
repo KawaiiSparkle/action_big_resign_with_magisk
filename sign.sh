@@ -7,8 +7,7 @@ tar xzvf avbtool.tgz -C vbmeta/
 mv work/boot* boot/boot.img
 mv work/vbmeta* vbmeta/keys/vbmeta.img
 busybox unzip -oq magisk.apk -d boot/zzz
-mv main/boot_patch_9.sh boot/
-mv main/boot_patch_10.sh boot/
+mv main/boot_patch.sh boot/
 mv main/sign_avb.sh vbmeta/
 git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
 cp -a vendor_sprd_proprietories-source_packimage/sign_image/v2/prebuilt/* work/
@@ -29,8 +28,8 @@ cp work/config-unisoc/rsa4096_boot.pem vbmeta/
 cp -f work/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/
 cp work/config-unisoc/rsa4096_vbmeta.pem vbmeta/
 chmod +x vbmeta/*
-sudo rm -rf /usr/bin/python
-sudo ln -s /usr/bin/python2 /usr/bin/python
+sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
+sudo ln -sf /usr/bin/python2.7 /usr/bin/python
 cd work
 
 if [ -f "splloader.bin" ]; then
@@ -77,21 +76,14 @@ elif [ -f "trustos.bin" ]; then
     fi
 fi
 
-if [ ! -f "teecfg.bin" ]; then
-    cd ../boot
-    ./boot_patch_9.sh
-else
-    ./get-raw-image "teecfg.bin"
-    RETVAL=$?
-    if [ $RETVAL -ne 0 ]; then
-        rm teecfg.bin
-        cd ../boot
-        ./boot_patch_9.sh
-    else
-        cd ../boot
-        ./boot_patch_10.sh
-    fi
+./get-raw-image "teecfg.bin"
+RETVAL=$?
+if [ $RETVAL -ne 0 ]; then
+    rm teecfg.bin
 fi
+
+cd ../boot
+./boot_patch.sh
 
 cd ../vbmeta
 ./sign_avb.sh boot ../boot/boot.img ../boot/patched.img
