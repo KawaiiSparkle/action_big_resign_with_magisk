@@ -24,7 +24,7 @@ jobs:
     - name: patch
       run: |
         sudo apt update
-        sudo apt -y install build-essential python openssl curl wget
+        sudo apt -y install build-essential python openssl curl wget busybox
         wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && sudo python2.7 get-pip.py
         pip2 install pycryptodome
         curl -o original.zip -L "${{ github.event.inputs.ZIP_URL }}"
