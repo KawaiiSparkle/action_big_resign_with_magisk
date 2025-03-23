@@ -3,8 +3,12 @@ name: resign
 on:
   workflow_dispatch:
     inputs:
-      ZIP_URL:    
+      ZIP_URL:
         description: 'URL of (splloader)+uboot+sml+trustos+(teecfg)+vbmeta+boot+(recovery) (all end with .bin)'
+        required: true
+        default: ''
+      MAGISK_URL:
+        description: 'Plz to input your Custom magisk.apk url'
         required: true
         default: ''
 
@@ -29,7 +33,8 @@ jobs:
         pip2 install pycryptodome
         curl -o original.zip -L "${{ github.event.inputs.ZIP_URL }}"
         curl -o avbtool.tgz -L "https://android.googlesource.com/platform/external/avb/+archive/refs/heads/pie-release.tar.gz"
-        curl -o magisk.apk -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases/latest | grep -Po '(?<=download_url\"\: \").*Magisk.*apk')
+        # curl -o magisk.apk -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases/latest | grep -Po '(?<=download_url\"\: \").*Magisk.*apk')
+        curl -L -o magisk.apk "${{ github.event.inputs.MAGISK_URL }}"
         wget https://raw.githubusercontent.com/magojohnji/magiskboot-linux/main/x86_64/magiskboot
         chmod +x magiskboot
         chmod +x main/*.sh
