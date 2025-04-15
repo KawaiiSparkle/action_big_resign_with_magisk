@@ -1,4 +1,4 @@
-name: sign-one-partition-only
+name: sign-one-partition-only-magisk
 
 on:
   workflow_dispatch:
@@ -31,18 +31,28 @@ jobs:
         sudo apt -y install build-essential python openssl curl wget busybox
         wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && sudo python2.7 get-pip.py
         pip2 install pycryptodome
-        curl -o image.img -L "${{ github.event.inputs.IMG_URL }}"
         curl -o avbtool.tgz -L "https://android.googlesource.com/platform/external/avb/+archive/refs/heads/pie-release.tar.gz"
+        curl -o magisk.apk -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases/latest | grep -Po '(?<=download_url\"\: \").*Magisk.*apk')
+        wget https://raw.githubusercontent.com/magojohnji/magiskboot-linux/main/x86_64/magiskboot
+        chmod +x magiskboot
+        mkdir -p boot/zzz
         mkdir work
-        tar xzvf avbtool.tgz -C work/
+        mv main/boot_patch.sh boot/
         mv main/sign_avb.sh work/
+        chmod +x boot/*
         chmod +x work/*
+        busybox unzip -oq magisk.apk -d boot/zzz
+        curl -o boot/boot.img -L "${{ github.event.inputs.IMG_URL }}"
+        tar xzvf avbtool.tgz -C work/
         git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
         cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/*.pem work/
         sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
         sudo ln -sf /usr/bin/python2.7 /usr/bin/python
-        cd work
-        ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../image.img ../image.img
+        cd boot
+        ./boot_patch.sh
+        cd ../work
+        ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../boot/boot.img ../boot/patched.img
+        cp ../boot/patched.img ../image.img
 
     - name: Upload to Release
       uses: softprops/action-gh-release@v1

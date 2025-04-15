@@ -1,6 +1,6 @@
 # Flags
-export KEEPVERITY=false
-export KEEPFORCEENCRYPT=false
+export KEEPVERITY=true
+export KEEPFORCEENCRYPT=true
 export RECOVERYMODE=false
 export PREINITDEVICE=cache
 

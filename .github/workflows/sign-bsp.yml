@@ -16,7 +16,7 @@ jobs:
     - name: patch
       run: |
         sudo apt update
-        sudo apt -y install build-essential openssl curl wget
+        sudo apt -y install build-essential openssl curl wget busybox
         mkdir work
         git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
         cp -a vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc work/
