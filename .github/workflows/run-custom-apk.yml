@@ -1,4 +1,4 @@
-name: resign
+name: resign but custom apk
 
 on:
   workflow_dispatch:
