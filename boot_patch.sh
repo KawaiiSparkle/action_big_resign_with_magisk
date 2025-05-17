@@ -100,8 +100,15 @@ echo "PREINITDEVICE=$PREINITDEVICE" >> config
 
 # Compress to save precious ramdisk space
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libmagisk.so magisk.xz
-../magiskboot compress=xz zzz/assets/stub.apk stub.xz
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libinit-ld.so init-ld.xz
+
+# 新增：将magisk.apk重命名为stub并压缩成stub.xz
+mv zzz/assets/magisk.apk zzz/assets/stub
+xz -z -k zzz/assets/stub
+
+# 新增：替换overlay.d/sbin目录下的stub.xz
+rm -f cpiotmp/overlay.d/sbin/stub.xz
+cp zzz/assets/stub.xz cpiotmp/overlay.d/sbin/stub.xz
 
 ../magiskboot cpio ramdisk.cpio \
 "add 0750 $INIT zzz/lib/$cpu_abi/libmagiskinit.so" \
