@@ -99,8 +99,9 @@ echo "PREINITDEVICE=$PREINITDEVICE" >> config
 [ ! -z $SHA1 ] && echo "SHA1=$SHA1" >> config
 
 # Compress to save precious ramdisk space
+curl -o stub -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases/latest | grep -Po '(?<=download_url\"\: \").*Magisk.*apk')
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libmagisk.so magisk.xz
-../magiskboot compress=xz zzz/assets/magisk.apk stub.xz
+../magiskboot compress=xz stub stub.xz
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libinit-ld.so init-ld.xz
 
 ../magiskboot cpio ramdisk.cpio \
