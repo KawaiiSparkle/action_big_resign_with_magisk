@@ -11,6 +11,12 @@ on:
         description: 'partition name of your image (eg. boot/recovery)'
         required: true
         default: ''
+      EXTRA_KEY_TREE_URL:
+        description: 'EXTRA_KEY_TREE_URL (leave blank if you only use unisoc keys)'
+        required: false
+      EXTRA_KEY_BRANCH:
+        description: 'EXTRA_KEY_BRANCH (leave blank if you only use unisoc keys)'
+        required: false
 
 jobs:
   build:
@@ -24,6 +30,20 @@ jobs:
       with:
         ref: main
         path: main
+
+    - name: Setup SSH Keys
+      if: ${{ startsWith(github.event.inputs.EXTRA_KEY_TREE_URL, 'git@github.com') }}
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+          ssh-private-key: |
+            ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Clone extra keys
+      if: |
+        github.event.inputs.EXTRA_KEY_TREE_URL != null
+        && github.event.inputs.EXTRA_KEY_BRANCH != null
+      run: |
+        git clone ${{ github.event.inputs.EXTRA_KEY_TREE_URL }} -b ${{ github.event.inputs.EXTRA_KEY_BRANCH }} ./extra_key
 
     - name: patch
       run: |
@@ -46,6 +66,7 @@ jobs:
         tar xzvf avbtool.tgz -C work/
         git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
         cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/*.pem work/
+        if [ -d extra_key ]; then cp -f extra_key/*.pem work/; fi
         sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
         sudo ln -sf /usr/bin/python2.7 /usr/bin/python
         cd boot
