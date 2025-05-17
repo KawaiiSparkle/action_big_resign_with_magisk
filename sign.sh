@@ -12,6 +12,7 @@ mv main/sign_avb.sh vbmeta/
 git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
 cp -a vendor_sprd_proprietories-source_packimage/sign_image/v2/prebuilt/* work/
 cp -a vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc work/
+if [ -d extra_key ]; then cp -f extra_key/* work/config-unisoc/; fi
 cp vendor_sprd_proprietories-source_packimage/sign_image/v2/sign_image_v2.sh work/
 gcc -o work/get-raw-image vendor_sprd_proprietories-source_packimage/sign_image/get-raw-image.c
 chmod +x work/*
