@@ -13,6 +13,10 @@ on:
       EXTRA_KEY_BRANCH:
         description: 'EXTRA_KEY_BRANCH (leave blank if you only use unisoc keys)'
         required: false
+      antiroll:
+        description: 'anti-rollback version (trusted_version) for BSP signing'
+        required: false
+        default: '0'
 
 jobs:
   build:
@@ -42,6 +46,8 @@ jobs:
         git clone ${{ github.event.inputs.EXTRA_KEY_TREE_URL }} -b ${{ github.event.inputs.EXTRA_KEY_BRANCH }} ./extra_key
 
     - name: patch
+      env:
+        ANTIROLL: "${{ github.event.inputs.antiroll }}"
       run: |
         sudo apt update
         sudo apt -y install build-essential python openssl curl wget busybox
@@ -54,6 +60,8 @@ jobs:
         chmod +x magiskboot
         chmod +x main/*.sh
         mv main/sign.sh ./
+        if ! [[ "$ANTIROLL" =~ ^[0-9]+$ ]]; then echo "antiroll must be a non-negative integer"; exit 1; fi
+        sed -i "s/trusted_version=.*/trusted_version=$ANTIROLL/" main/config/version.cfg
         ./sign.sh
 
     - name: Upload to Release
