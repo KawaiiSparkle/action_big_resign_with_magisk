@@ -1,10 +1,10 @@
 #part_name signed_img img_to_sign [size_mb]
 PROP_FILE=$(mktemp)
-INFO_OUTPUT=$(python avbtool info_image --image $2)
+INFO_OUTPUT=$(./avbctl info_image --image $2)
 PARTITION_SIZE=$(echo "$INFO_OUTPUT" | grep -E "^Image size:" | awk '{print $(NF-1)}')
 echo "$INFO_OUTPUT" | grep "Prop:" > "$PROP_FILE"
 
-CMD="python avbtool add_hash_footer --image $3 --partition_name $1 --key rsa4096_$1.pem --algorithm SHA256_RSA4096"
+CMD="./avbctl add_hash_footer --image $3 --partition_name $1 --key rsa4096_$1.pem --algorithm SHA256_RSA4096"
 
 if [ -z "$PARTITION_SIZE" ] && [ -n "$4" ]; then
     PARTITION_SIZE=$(($4 * 1024 * 1024))

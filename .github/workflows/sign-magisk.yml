@@ -24,8 +24,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/catthehacker/ubuntu:runner-20.04
     steps:
     
     - name: Checkout
@@ -51,15 +49,15 @@ jobs:
     - name: patch
       run: |
         sudo apt update
-        sudo apt -y install build-essential python2 openssl curl wget busybox xz-utils python3
+        sudo apt -y install build-essential openssl curl wget busybox xz-utils python3
         # install static 7zz used below instead of busybox unzip:
         # latest official ip7z/7zip linux-x64 release (resolved via GitHub API),
         # falling back to the mcmilk/7-Zip-zstd nightly linux-clang-x64 build
         chmod +x main/setup-7zz.sh
         ./main/setup-7zz.sh
-        wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && sudo python2.7 get-pip.py
-        pip2 install pycryptodome
-        curl -o avbtool.tgz -L "https://android.googlesource.com/platform/external/avb/+archive/refs/heads/pie-release.tar.gz"
+        # build avbctl, the static C replacement for the python2 avbtool
+        # (fetches mbedtls-3.6 and links it statically)
+        make -C main/avbctl
         curl -o magisk.apk -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases | grep -Po -m 1 '(?<=download_url\"\: \").*Magisk.*Magisk.*apk')
         wget https://raw.githubusercontent.com/magojohnji/magiskboot-linux/main/x86_64/magiskboot
         chmod +x magiskboot
@@ -72,13 +70,11 @@ jobs:
         # 7zz exit code 1 = warnings only (archive still fully extracted), tolerate it like unzip did
         7zz x -y -bd -oboot/zzz/ magisk.apk || [ "$?" -eq 1 ]
         curl -o boot/boot.img -L "${{ github.event.inputs.IMG_URL }}"
-        tar xzvf avbtool.tgz -C work/
+        cp main/avbctl/avbctl work/
         cp main/config/*.pem work/
         cp -f work/rsa4096_boot.pem work/rsa4096_dtb.pem
         cp -f work/rsa4096_boot.pem work/rsa4096_dtbo.pem
         if [ -d extra_key ]; then cp -f extra_key/*.pem work/; fi
-        sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
-        sudo ln -sf /usr/bin/python2.7 /usr/bin/python
         cd boot
         ./boot_patch.sh ${{ github.event.inputs.PART_SIZE }}
         cd ../work
