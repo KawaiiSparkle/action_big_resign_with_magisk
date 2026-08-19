@@ -50,7 +50,12 @@ jobs:
         ANTIROLL: "${{ github.event.inputs.antiroll }}"
       run: |
         sudo apt update
-        sudo apt -y install build-essential python openssl curl wget busybox
+        sudo apt -y install build-essential python openssl curl wget busybox xz-utils python3
+        # install static 7zz used by the scripts instead of busybox unzip:
+        # latest official ip7z/7zip linux-x64 release (resolved via GitHub API),
+        # falling back to the mcmilk/7-Zip-zstd nightly linux-clang-x64 build
+        chmod +x main/setup-7zz.sh
+        ./main/setup-7zz.sh
         wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && sudo python2.7 get-pip.py
         pip2 install pycryptodome
         curl -o original.zip -L "${{ github.event.inputs.ZIP_URL }}"

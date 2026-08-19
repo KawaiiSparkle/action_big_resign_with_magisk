@@ -1,11 +1,12 @@
 mkdir work
-busybox unzip -oq original.zip -d work
+# static 7zz replaces busybox unzip; 7zz exit code 1 = warnings only (archive still fully extracted), tolerate it like unzip did
+7zz x -y -bd -owork/ original.zip || [ "$?" -eq 1 ]
 mkdir -p boot/zzz
 mkdir -p vbmeta/keys
 mkdir output
 tar xzvf avbtool.tgz -C vbmeta/
 mv work/vbmeta* vbmeta/keys/vbmeta.img
-busybox unzip -oq magisk.apk -d boot/zzz
+7zz x -y -bd -oboot/zzz/ magisk.apk || [ "$?" -eq 1 ]
 mv main/boot_patch.sh boot/
 mv main/sign_avb.sh vbmeta/
 git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
